@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                dir('CodeAlpha_JavaApplication_UsingGradle') {
+                    sh './gradlew build'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('CodeAlpha_JavaApplication_UsingGradle') {
+                    sh './gradlew test'
+                }
+            }
+        }
+    }
+}
