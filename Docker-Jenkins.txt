@@ -1,0 +1,66 @@
+1. pull the jenkins image
+
+docker pull jenkins/jenkins:lts-jdk21
+
+2. 
+Function:
+
+This command creates and starts a Jenkins Docker container from
+ the Jenkins image you already downloaded.
+breakdown
+| Part                                | Function                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `docker run`                        | Creates a new container and starts it                                                 |
+| `-d`                                | Runs Jenkins in the background (detached mode)                                        |
+| `--name jenkins`                    | Gives the container the name `jenkins` so we can easily manage it later               |
+| `-p 8080:8080`                      | Maps Jenkins web interface port from the container to your PC (`localhost:8080`)      |
+| `-p 50000:50000`                    | Opens Jenkins agent/remoting communication port (used for connecting build agents)    |
+| `-v jenkins_home:/var/jenkins_home` | Connects your Docker volume to Jenkins storage so jobs, plugins, and settings persist |
+| `jenkins/jenkins:lts-jdk21`         | The Jenkins image to use (Jenkins LTS running on Java 21)                             |
+
+
+docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk21
+
+
+
+ *************************************************************
+[LF]>
+[LF]> Jenkins initial setup is required. An admin user has been created and a password generated.
+[LF]> Please use the following password to proceed to installation:
+[LF]>
+[LF]> fa625a2e6dd54a5486b2e32e8b409c83
+[LF]>
+[LF]> This may also be found at: /var/jenkins_home/secrets/initialAdminPassword
+[LF]>
+[LF]> *************************************************************
+
+
+
+Create the correct Jenkins container
+
+docker rm $(docker ps -aq --filter ancestor=jenkins/jenkins:lts-jdk21)
+
+
+
+Spit the admin passord by running
+
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+
+
+
+
+
+
+
+06-08-2026
+
+
+[LF]> bfe2c394cb424fcc9d1e5d1419abe499
+[LF]>
+[LF]> This may also be found at: /var/jenkins_home/secrets/initialAdminPassword
+
+31-08-2026
+
+http://localhost:8080/
+CodeAlpha-Jenkins-Project
