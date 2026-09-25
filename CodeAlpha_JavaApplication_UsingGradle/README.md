@@ -170,7 +170,7 @@ The **assets/** directory contains screenshots demonstrating:
 * Dependency report
 * Successful build
 * Application execution
-* HTML test report (100% success)
+* HTML test report & (100% success)
 
 ---
 
