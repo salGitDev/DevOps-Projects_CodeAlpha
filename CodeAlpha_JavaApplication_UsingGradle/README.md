@@ -1,17 +1,19 @@
-# CodeAlpha - Java Application Using Gradle
+# CodeAlpha - Jenkins CI with Gradle
 
-A simple Java application built and managed with **Gradle** as part of the **CodeAlpha DevOps Internship**. This project demonstrates build automation, dependency management, testing, report generation, and executable JAR creation using Java 19.
+A Java application built and managed with **Gradle**, integrated with **Jenkins** for continuous integration as part of the **CodeAlpha DevOps Internship**.
+
+The project demonstrates automated GitHub-triggered Jenkins builds, Gradle compilation, automated testing, and webhook exposure using **ngrok**.
 
 ---
 
 ## Objectives
 
-* Automate Java project builds using Gradle.
-* Manage external libraries using Gradle dependencies.
-* Generate an executable JAR file.
-* Execute automated unit tests.
-* Produce an HTML test report.
-* Demonstrate Java 19 project configuration.
+* Automate Java builds using Gradle.
+* Run automated tests through Jenkins.
+* Trigger Jenkins automatically after a GitHub push.
+* Demonstrate GitHub Webhook integration.
+* Expose the local Jenkins server to GitHub using ngrok.
+* Verify successful CI builds and tests.
 
 ---
 
@@ -19,6 +21,10 @@ A simple Java application built and managed with **Gradle** as part of the **Cod
 
 * Java 19
 * Gradle
+* Jenkins
+* Docker
+* Git & GitHub
+* ngrok
 * SQLite JDBC
 * JUnit Jupiter
 * Visual Studio Code
@@ -38,156 +44,155 @@ CodeAlpha_JavaApplication_UsingGradle
 │   └── build
 │
 ├── assets
-│   ├── java-version.png
-│   ├── sqlite-jdbc-dependency.png
-│   ├── dependency-report.png
-│   ├── test-report.png
-│   ├── build-success.png
-│   └── run-output.png
-│
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle
+├── Jenkinsfile
 └── README.md
 ```
 
 ---
 
-## Project Verification
+## Jenkins Pipeline
 
-The following tasks were completed successfully during development.
-
-### 1. Java 19 Configuration
-
-Verified that Java 19 was correctly installed and configured.
-
-**Commands**
-
-```bash
-java -version
-javac -version
-```
-
-**Result**
-
-* Java Runtime verified
-* Java Compiler verified
-* Project configured to use Java 19
-
----
-
-### 2. Dependency Management
-
-Added the SQLite JDBC driver to the Gradle project by editing the `app/build.gradle` file.
-
-```gradle
-implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
-```
-
-Verified the dependency using:
-
-```bash
-gradlew :app:dependencies
-```
-
-**Result**
-
-* SQLite JDBC successfully downloaded
-* Dependency resolved by Gradle
-
----
-
-### 3. Build the Application
-
-Compiled the project and generated an executable JAR.
-
-**Command**
-
-```bash
-gradlew build
-```
-
-Generated JAR location:
+The Jenkins pipeline is defined in the `Jenkinsfile` and performs the following stages:
 
 ```text
-app/build/libs/
+GitHub Push
+     ↓
+GitHub Webhook
+     ↓
+ngrok
+     ↓
+Jenkins
+     ↓
+Gradle Assemble
+     ↓
+Gradle Test
+     ↓
+Build Success
 ```
 
-**Result**
+### Gradle commands executed by Jenkins
 
-* Project compiled successfully
-* Executable JAR generated
+```bash
+./gradlew assemble
+./gradlew test
+```
+
+Both stages completed successfully during the final CI test.
 
 ---
 
-### 4. Run the Application
+## GitHub Webhook and ngrok
 
-Executed the application using Gradle.
-
-```bash
-gradlew run
-```
-
-The generated JAR can also be executed directly:
-
-```bash
-java -jar app/build/libs/<jar-file-name>.jar
-```
-
-**Result**
-
-* Application executed successfully
-
----
-
-### 5. Automated Testing
-
-Executed the unit tests.
-
-```bash
-gradlew test
-```
-
-Generated HTML report:
+Jenkins runs locally inside Docker and is accessible on:
 
 ```text
-app/build/reports/tests/test/index.html
+http://localhost:8080
 ```
 
-**Result**
+GitHub cannot directly access this local address. **ngrok** creates a secure public HTTPS tunnel to the local Jenkins server.
 
-* All tests passed successfully (100%)
-* HTML report generated
+```text
+GitHub
+   │
+   │ HTTPS
+   ▼
+https://cancel-filler-whoopee.ngrok-free.dev
+   │
+   │ ngrok tunnel
+   ▼
+http://localhost:8080
+   │
+   ▼
+Jenkins
+```
+
+The GitHub Webhook payload URL is:
+
+```text
+https://cancel-filler-whoopee.ngrok-free.dev/github-webhook/
+```
+
+ngrok maps the public URL to:
+
+```text
+http://localhost:8080
+```
+
+When a push is made to the repository, GitHub sends a `POST` request to:
+
+```text
+/github-webhook/
+```
+
+Jenkins receives the webhook and automatically starts the pipeline.
+
+The ngrok inspection interface can be used locally to verify incoming requests:
+
+```text
+http://127.0.0.1:4040
+```
+
+A successful webhook request appears as:
+
+```text
+POST /github-webhook/    200 OK
+```
 
 ---
 
-## Screenshots
+## Jenkins Verification
 
-The **assets/** directory contains screenshots demonstrating:
+The final automated pipeline successfully demonstrated:
 
-* Java 19 verification
-* SQLite JDBC dependency
-* Dependency report
-* Successful build
-* Application execution
-* HTML test report (100% success)
+```text
+Started by GitHub push
+        ↓
+Checkout from GitHub
+        ↓
+./gradlew assemble
+        ↓
+BUILD SUCCESSFUL
+        ↓
+./gradlew test
+        ↓
+BUILD SUCCESSFUL
+        ↓
+Finished: SUCCESS
+```
+
+The Jenkins workspace uses:
+
+```text
+/var/jenkins_home/workspace/CodeAlpha-Jenkins-Project
+```
+
+and the Gradle project is executed from:
+
+```text
+CodeAlpha_JavaApplication_UsingGradle
+```
 
 ---
 
-## Gradle Commands Used
+## Useful Commands
 
-| Command                                        | Description                                         |
-| ---------------------------------------------- | --------------------------------------------------- |
-| `gradlew build`                                | Builds the project and generates the executable JAR |
-| `gradlew run`                                  | Runs the Java application                           |
-| `gradlew test`                                 | Executes unit tests and generates the HTML report   |
-| `gradlew :app:dependencies`                    | Displays project dependencies                       |
-| `java -version`                                | Displays the installed Java Runtime version         |
-| `javac -version`                               | Displays the installed Java Compiler version        |
-| `java -jar app/build/libs/<jar-file-name>.jar` | Runs the generated executable JAR                   |
+| Command                       | Purpose                             |
+| ----------------------------- | ----------------------------------- |
+| `./gradlew assemble`          | Builds the application              |
+| `./gradlew test`              | Runs automated tests                |
+| `./gradlew build`             | Builds and tests the project        |
+| `./gradlew run`               | Runs the Java application           |
+| `./gradlew :app:dependencies` | Displays Gradle dependencies        |
+| `java -version`               | Verifies Java version               |
+| `ngrok http 8080`             | Exposes local Jenkins through ngrok |
 
 ---
 
 ## Outcome
 
-This project successfully demonstrates the use of Gradle for Java application development, including dependency management, build automation, testing, report generation, and executable JAR creation. All project verification tasks were completed successfully, and supporting screenshots have been included for reference.
+The project successfully demonstrates a basic **Continuous Integration workflow** using GitHub, Jenkins, Docker, Gradle, and ngrok.
+
+A GitHub push automatically triggers Jenkins, which checks out the latest code, runs the Gradle build, executes the tests, and reports the final build status.
